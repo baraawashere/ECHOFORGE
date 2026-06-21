@@ -1,4 +1,5 @@
 .gap-map {
+  position: relative;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -36,6 +37,11 @@
 .node-wrong {
   fill: var(--bg);
   stroke-width: 2.5;
+  transition: r 0.15s ease-out;
+}
+
+.node-wrong:hover {
+  r: 11;
 }
 
 .node-correct {
@@ -44,10 +50,123 @@
   opacity: 0.55;
 }
 
+.node-selected {
+  fill: var(--gold);
+}
+
 .gap-edge {
   fill: none;
   stroke: var(--gold);
   stroke-width: 2;
   opacity: 0.85;
   filter: drop-shadow(0 0 4px var(--gold));
+}
+
+/*
+  An unreviewed connection is real but unconfirmed — visibly duller and
+  dashed instead of solid, so the dashboard itself shows the
+  human-in-the-loop state, not just a sentence in narration claiming it.
+*/
+.gap-edge-pending {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  opacity: 0.45;
+  stroke-dasharray: 6 4;
+}
+
+/*
+  pathLength="1" on the <path> means the dash array is in NORMALIZED
+  units (0 to 1) regardless of the path's actual pixel length — that's
+  what makes a single keyframe work for arcs of any width.
+*/
+.gap-edge-drawing {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-in 0.9s ease-out forwards;
+}
+
+@keyframes draw-in {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.node-pulse-ring {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0.9;
+  animation: pulse-ring 1.2s ease-out forwards;
+  transform-origin: center;
+}
+
+@keyframes pulse-ring {
+  0% {
+    r: 9;
+    opacity: 0.9;
+  }
+  100% {
+    r: 22;
+    opacity: 0;
+  }
+}
+
+.node-detail-panel {
+  margin-top: 12px;
+  background: var(--bg);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  animation: fade-in 0.2s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.node-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.node-detail-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.node-detail-question {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.node-detail-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.answer-wrong {
+  color: var(--wrong);
+}
+
+.answer-correct {
+  color: var(--text-muted);
 }

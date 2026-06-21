@@ -112,3 +112,28 @@
 .analysis-feed-error .analysis-feed-label {
   color: var(--wrong);
 }
+
+.approve-button {
+  margin-top: 10px;
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.approve-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.reviewed-badge {
+  margin-top: 10px;
+  color: var(--physics);
+  font-size: 13px;
+  font-weight: 500;
+}

@@ -16,6 +16,18 @@ function edgeKey(edge) {
   return `${edge.source_id}::${edge.target_id}`;
 }
 
+/**
+ * Renders mistakes on a horizontal timeline, one lane per subject —
+ * because the entire point of ECHOFORGE is that the gap PERSISTS
+ * ACROSS TIME, the x-axis being literal time is the most honest way
+ * to show that, not a generic force-directed blob.
+ *
+ * Day 3 additions:
+ * - New edges draw themselves in with a stroke animation instead of
+ *   just popping into existence (see "justAppeared" below)
+ * - The two nodes an edge connects pulse briefly when it's new
+ * - Clicking any node opens a detail panel with the real question
+ */
 export default function CognitiveGapMap({ nodes, edges }) {
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [justAppearedKeys, setJustAppearedKeys] = useState(new Set());
@@ -33,6 +45,9 @@ export default function CognitiveGapMap({ nodes, edges }) {
 
     if (newlyAppeared.size > 0) {
       setJustAppearedKeys(newlyAppeared);
+      // After the draw-in + pulse animations finish, drop back to the
+      // plain static render so refreshing the page later doesn't
+      // replay the animation for edges that aren't actually new.
       const timer = setTimeout(() => setJustAppearedKeys(new Set()), 1400);
       seenEdgeKeysRef.current = currentKeys;
       return () => clearTimeout(timer);
@@ -73,6 +88,8 @@ export default function CognitiveGapMap({ nodes, edges }) {
 
   const nodeById = Object.fromEntries(nodes.map((n) => [n.answer_id, n]));
 
+  // Which node ids belong to an edge that just appeared — these get
+  // the pulsing-ring treatment for a moment.
   const pulsingNodeIds = new Set();
   for (const edge of edges || []) {
     if (justAppearedKeys.has(edgeKey(edge))) {
@@ -113,15 +130,20 @@ export default function CognitiveGapMap({ nodes, edges }) {
           const midX = (x1 + x2) / 2;
           const arcHeight = Math.min(Math.abs(x1 - x2) * 0.4, maxArcHeight);
           const isNew = justAppearedKeys.has(edgeKey(edge));
+          const baseClass = edge.reviewed ? "gap-edge" : "gap-edge-pending";
+          const className = isNew ? `${baseClass} gap-edge-drawing` : baseClass;
 
           return (
             <path
               key={i}
               d={`M ${x1} ${y1} Q ${midX} ${Math.min(y1, y2) - arcHeight} ${x2} ${y2}`}
-              className={isNew ? "gap-edge gap-edge-drawing" : "gap-edge"}
+              className={className}
               pathLength="1"
             >
-              <title>{edge.root_cause_summary}</title>
+              <title>
+                {edge.root_cause_summary}
+                {edge.reviewed ? " (reviewed)" : " (pending teacher review)"}
+              </title>
             </path>
           );
         })}
@@ -167,11 +189,11 @@ export default function CognitiveGapMap({ nodes, edges }) {
           </div>
           <p className="node-detail-question">{selectedNode.question_text}</p>
           <div className="node-detail-answers">
-            <span className={selectedNode.is_correct ? "answer-correct" : "answer-wrong"}>
+            <div className={selectedNode.is_correct ? "answer-correct" : "answer-wrong"}>
               Student answered: {selectedNode.student_answer}
-            </span>
+            </div>
             {!selectedNode.is_correct && (
-              <span className="answer-correct">Correct: {selectedNode.correct_answer}</span>
+              <div className="answer-correct">Correct: {selectedNode.correct_answer}</div>
             )}
           </div>
         </div>

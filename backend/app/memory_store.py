@@ -40,12 +40,10 @@ def store_answer(answer: Answer) -> None:
                 "concept_key": answer.concept_key,
                 "standard_code": answer.standard_code,
                 "question_text": answer.question_text,
-                "is_correct": answer.is_correct,
-                "timestamp": answer.timestamp.isoformat(),
-                "question_text": answer.question_text,
                 "student_answer": answer.student_answer,
                 "correct_answer": answer.correct_answer,
                 "is_correct": answer.is_correct,
+                "timestamp": answer.timestamp.isoformat(),
             }
         ],
         documents=[answer.embedding_text()],

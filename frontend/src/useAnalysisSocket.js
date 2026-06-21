@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { WS_BASE_URL } from "./api.js";
 
+/**
+ * Connects to /ws/{studentId} and exposes the live state of whatever
+ * analysis is currently streaming in. onClusterComplete fires once,
+ * with the finished cluster, so App.jsx can refresh the gap map.
+ *
+ * Reconnects automatically if the socket drops — without this, a
+ * backend restart (which happens a lot during dev) leaves the page
+ * silently disconnected: future analyses complete fine on the server
+ * but never reach the screen, with no visible sign anything's wrong.
+ */
 export function useAnalysisSocket(studentId, onClusterComplete) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [liveText, setLiveText] = useState("");

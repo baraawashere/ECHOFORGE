@@ -28,4 +28,13 @@ export async function fetchHistory(studentId) {
   return res.json();
 }
 
+export async function reviewCluster(studentId, triggerAnswerId) {
+  const res = await fetch(
+    `${BASE_URL}/api/students/${studentId}/clusters/${triggerAnswerId}/review`,
+    { method: "POST" }
+  );
+  if (!res.ok) throw new Error(`reviewCluster failed: ${res.status}`);
+  return res.json();
+}
+
 export const WS_BASE_URL = "ws://localhost:8000";

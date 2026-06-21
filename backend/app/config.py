@@ -13,13 +13,12 @@ class Settings(BaseSettings):
 
     chroma_persist_dir: str = "./chroma_data"
     embedding_model_name: str = "all-MiniLM-L6-v2"
+    clusters_file: str = "./clusters.json"
 
     # Cosine similarity cutoff for "this past mistake might share a root cause
     # with the new one". Start at 0.45 and tune after seeding real demo data —
     # this number is the single most important knob in the whole project.
     similarity_threshold: float = 0.45
-    
-    clusters_file: str = "./clusters.json"
 
     # How many past mistakes to pull back when checking for a pattern
     neighbor_search_k: int = 5

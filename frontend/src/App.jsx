@@ -21,7 +21,10 @@ export default function App() {
     refreshGapMap();
   }, [refreshGapMap]);
 
-  const { isAnalyzing, liveText, error } = useAnalysisSocket(studentId, () => {
+  const [lastCluster, setLastCluster] = useState(null);
+
+  const { isAnalyzing, liveText, error } = useAnalysisSocket(studentId, (cluster) => {
+    setLastCluster(cluster);
     refreshGapMap();
   });
 
@@ -35,7 +38,14 @@ export default function App() {
       <main className="app-main">
         <CognitiveGapMap nodes={gapMap.nodes} edges={gapMap.edges} />
 
-        <LiveAnalysisFeed isAnalyzing={isAnalyzing} liveText={liveText} error={error} />
+        <LiveAnalysisFeed
+          isAnalyzing={isAnalyzing}
+          liveText={liveText}
+          error={error}
+          studentId={studentId}
+          cluster={lastCluster}
+          onReviewed={refreshGapMap}
+        />
 
         <section className="answer-section">
           <h2>Submit a new answer</h2>

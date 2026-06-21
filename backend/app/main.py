@@ -9,7 +9,7 @@ Routes:
 """
 import asyncio
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.models import Answer, AnswerIn, GapMapEdge, GapMapNode, GapMapResponse
@@ -19,16 +19,16 @@ from app.websocket_manager import manager
 from app.curriculum_standards import list_concepts
 from app.cluster_store import load_clusters, save_clusters
 
-
 app = FastAPI(title="ECHOFORGE")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"],  # Vite dev server default
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Loaded from disk now instead of starting empty every restart.
 _clusters_by_student: dict[str, list[dict]] = load_clusters()
 
 
@@ -41,6 +41,8 @@ async def submit_answer(payload: AnswerIn):
     pattern_found = len(related) > 0
 
     if pattern_found:
+        # Don't make the HTTP request wait for the LLM — stream the
+        # explanation over the WebSocket instead, fire-and-forget.
         asyncio.create_task(_analyze_and_broadcast(answer, related))
 
     return {
@@ -67,7 +69,8 @@ async def _analyze_and_broadcast(answer: Answer, related: list) -> None:
     except Exception as exc:
         # Without this, a bad/missing API key fails INSIDE this background
         # task and the frontend just sits on "analyzing..." forever with
-        # no error, no explanation. Surface it instead.
+        # no error, no explanation. Surface it instead — this exact bug
+        # cost real debugging time once already.
         await manager.send_event(
             answer.student_id,
             {"type": "analysis_error", "message": f"{type(exc).__name__}: {exc}"},
@@ -81,6 +84,7 @@ async def _analyze_and_broadcast(answer: Answer, related: list) -> None:
         "related_answer_ids": [m.answer_id for m in related],
         "root_cause_summary": summary.strip(),
         "explanation": explanation.strip(),
+        "reviewed": False,
     }
     _clusters_by_student.setdefault(answer.student_id, []).append(cluster)
     save_clusters(_clusters_by_student)
@@ -90,8 +94,30 @@ async def _analyze_and_broadcast(answer: Answer, related: list) -> None:
     )
 
 
+@app.post("/api/students/{student_id}/clusters/{trigger_answer_id}/review")
+async def review_cluster(student_id: str, trigger_answer_id: str):
+    """
+    The actual human-in-the-loop action: a teacher confirming an
+    AI-discovered diagnosis. Without this endpoint, "a teacher should be
+    able to review this" was just a sentence in a script, not something
+    the running app could do.
+    """
+    clusters = _clusters_by_student.get(student_id, [])
+    for cluster in clusters:
+        if cluster["trigger_answer_id"] == trigger_answer_id:
+            cluster["reviewed"] = True
+            save_clusters(_clusters_by_student)
+            return {"trigger_answer_id": trigger_answer_id, "reviewed": True}
+    raise HTTPException(status_code=404, detail="Cluster not found")
+
+
 @app.get("/api/concepts")
 async def concepts():
+    """
+    The real curriculum taxonomy, served so the frontend dropdown always
+    matches the backend exactly — there's only ever one source of truth,
+    curriculum_standards.py.
+    """
     return list_concepts()
 
 
@@ -109,11 +135,11 @@ async def gap_map(student_id: str):
             subject=item["subject"],
             concept_key=item["concept_key"],
             standard_code=item["standard_code"],
+            question_text=item["question_text"],
+            student_answer=item.get("student_answer", "(not recorded)"),
+            correct_answer=item.get("correct_answer", "(not recorded)"),
             is_correct=item["is_correct"],
             timestamp=item["timestamp"],
-            question_text=item["question_text"],
-            student_answer=item["student_answer"],
-            correct_answer=item["correct_answer"],
         )
         for item in raw_history
     ]
@@ -126,6 +152,8 @@ async def gap_map(student_id: str):
                     source_id=cluster["trigger_answer_id"],
                     target_id=related_id,
                     root_cause_summary=cluster["root_cause_summary"],
+                    trigger_answer_id=cluster["trigger_answer_id"],
+                    reviewed=cluster.get("reviewed", False),
                 )
             )
 
@@ -137,6 +165,8 @@ async def websocket_endpoint(websocket: WebSocket, student_id: str):
     await manager.connect(student_id, websocket)
     try:
         while True:
+            # We don't expect the client to send anything — this just
+            # keeps the connection open so manager.send_event() can push to it.
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(student_id)

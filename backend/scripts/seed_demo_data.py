@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.memory_store import reset_collection, store_answer  # noqa: E402
 from app.models import Answer  # noqa: E402
+from app.cluster_store import save_clusters  # noqa: E402
 
 DEMO_STUDENT_ID = "demo_student_01"
 
@@ -74,6 +75,9 @@ TRIGGER_ANSWER = Answer(
 def main() -> None:
     print(f"Resetting collection and seeding history for {DEMO_STUDENT_ID}...")
     reset_collection()
+    save_clusters({})  # wipe persisted connections too — otherwise old
+    # discoveries from earlier testing survive a "clean slate" reset and
+    # can point at mistakes that don't exist in the fresh data anymore.
     for mistake in PRELOADED_MISTAKES:
         store_answer(mistake)
         print(f"  stored: [{mistake.standard_code}] {mistake.question_text[:50]}...")

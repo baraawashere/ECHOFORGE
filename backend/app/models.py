@@ -108,6 +108,8 @@ class GapCluster(BaseModel):
 
 
 class GapMapNode(BaseModel):
+    """One node in the dashboard graph — one stored mistake."""
+
     answer_id: str
     subject: str
     concept_key: str
@@ -125,6 +127,10 @@ class GapMapEdge(BaseModel):
     source_id: str
     target_id: str
     root_cause_summary: str
+    trigger_answer_id: str
+    # The human-in-the-loop gate: an AI-discovered connection starts
+    # unreviewed and only counts as confirmed once a teacher approves it.
+    reviewed: bool = False
 
 
 class GapMapResponse(BaseModel):
