@@ -1,0 +1,53 @@
+.gap-map {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.gap-map-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gap-map-empty {
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.lane-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lane-line {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.node-wrong {
+  fill: var(--bg);
+  stroke-width: 2.5;
+}
+
+.node-correct {
+  fill: var(--bg);
+  stroke-width: 1.5;
+  opacity: 0.55;
+}
+
+.gap-edge {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 4px var(--gold));
+}

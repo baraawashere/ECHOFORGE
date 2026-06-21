@@ -1,0 +1,34 @@
+:root {
+  /* --- Color tokens --- */
+  --bg: #0b0e14;
+  --panel: #11151f;
+  --line: #1f2533;
+  --text-primary: #e8ecf4;
+  --text-muted: #7c8699;
+  --gold: #e8b339; /* the "discovery" color — only used for found connections */
+  --math: #8b7fff;
+  --physics: #3fd0c9;
+  --chemistry: #ff7f9c;
+  --biology: #8fd14f;
+  --default-subject: #6e7a91;
+  --wrong: #ff5c5c;
+
+  /* --- Type tokens --- */
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+#root {
+  min-height: 100vh;
+}
