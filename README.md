@@ -24,3 +24,5 @@ handverified Common Core State Standard pulled from thecorestandards.org
 not an AI guess, not a free-text label someone typed in. This is what lets
 two different mistakes about the same idea reliably connect, and it's what
 lets us say every diagnosis is grounded in something citable.
+
+## IMPORTANT: THIS PROJECT REQUIRES AN ANTHROPIC OR A GROQ API KEY TO FUNCTION.
